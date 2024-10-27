@@ -16,7 +16,7 @@ export async function GET() {
 
 export async function POST(request) {
   const { title, body, author } = await request.json();
-  console.log(title)
+
   const { data, error } = await supabase
     .from('penemu')
     .insert([{ title, body, author }]);
