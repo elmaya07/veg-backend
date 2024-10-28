@@ -2,6 +2,21 @@
 import { supabase } from "@/lib/supabaseClient";
 import { NextResponse } from 'next/server';
 
+export async function OPTIONS() {
+  return NextResponse.json(
+    {},
+    {
+      headers: {
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Origin': '*', // Ganti dengan asal yang diizinkan
+        'Access-Control-Allow-Methods': 'GET, OPTIONS, POST',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    }
+  );
+}
+
+
 export async function GET(request) {
   const { data, error } = await supabase
     .from('penemu')
