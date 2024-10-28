@@ -46,11 +46,11 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const { title, body, author } = await request.json();
+  const { title, body, author, user_id } = await request.json();
 
   const { data, error } = await supabase
     .from('penemu')
-    .insert([{ title, body, author }]);
+    .insert([{ title, body, author, user_id }]);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
