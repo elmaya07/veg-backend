@@ -50,9 +50,11 @@ export async function POST(request) {
   }
   console.log(userData)
 
+  delete userData.data?.[0]?.id;
+
   const result = {
+    ...userData.data?.[0],
     ...data.user,
-    ...userData.data?.[0]
   }
 
   // Successful login, return user data
