@@ -19,16 +19,32 @@ export async function OPTIONS() {
 
 
 export async function GET(request) {
-  const { data, error } = await supabase
-    .from('penemu')
-    .select('*');
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  const { searchParams } = new URL(request.url);
+  const user_id = searchParams.get('user_id');
+
+  let results = null;
+  if (user_id) {
+    const { data, error } = await supabase
+      .from('penemu')
+      .select('*')
+      .eq('user_id', user_id);
+    results = data
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+  } else {
+    const { data, error } = await supabase
+      .from('penemu')
+      .select('*');
+    results = data
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
   }
 
   const result = [];
-  for (const row of data) {
+  for (const row of results) {
     const { data, error } = await supabase
       .from('likes')
       .select('*')
@@ -40,7 +56,6 @@ export async function GET(request) {
     }
     result.push(res);
   }
-
 
   console.log(result)
   return NextResponse.json(result);
