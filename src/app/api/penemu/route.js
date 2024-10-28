@@ -1,5 +1,6 @@
 // app/api/users/route.ts
 import { supabase } from "@/lib/supabaseClient";
+import moment from "moment";
 import { NextResponse } from 'next/server';
 
 export async function OPTIONS() {
@@ -48,9 +49,11 @@ export async function GET(request) {
 export async function POST(request) {
   const { title, body, author, user_id } = await request.json();
 
+  const currDate = moment().format('YYYY-MM-DD')
+  console.log(currDate)
   const { data, error } = await supabase
     .from('penemu')
-    .insert([{ title, body, author, user_id }]);
+    .insert([{ title, body, author, user_id, date: currDate }]);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
