@@ -33,7 +33,7 @@ export async function POST(request) {
     .select('*')
     .eq('user_id', userId)
     .eq('penemu_id', penemuId);
-
+  console.log(data)
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

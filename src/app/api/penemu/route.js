@@ -2,7 +2,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request) {
   const { data, error } = await supabase
     .from('penemu')
     .select('*');
@@ -11,7 +11,23 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data);
+  const result = [];
+  for (const row of data) {
+    const { data, error } = await supabase
+      .from('likes')
+      .select('*')
+      .eq('penemu_id', row.id)
+      ;
+    const res = {
+      ...row,
+      likes: (data || []).length
+    }
+    result.push(res);
+  }
+
+
+  console.log(result)
+  return NextResponse.json(result);
 }
 
 export async function POST(request) {
