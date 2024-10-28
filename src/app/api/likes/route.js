@@ -38,7 +38,6 @@ export async function POST(request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  console.log(data)
   if (data.length > 0) {
     const { data, error } = await supabase
       .from('likes')
@@ -49,7 +48,7 @@ export async function POST(request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    return NextResponse.json(data, { status: 200 });
+    return NextResponse.json(1, { status: 200 });
   } else {
     const { data, error } = await supabase
       .from('likes')
@@ -58,7 +57,7 @@ export async function POST(request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    return NextResponse.json(data, { status: 200 });
+    return NextResponse.json(1, { status: 200 });
   }
 
 
