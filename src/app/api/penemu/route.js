@@ -65,7 +65,7 @@ export async function POST(request) {
   const { title, body, author, user_id } = await request.json();
 
   const currDate = moment().format('YYYY-MM-DD')
-  console.log(currDate)
+
   const { data, error } = await supabase
     .from('penemu')
     .insert([{ title, body, author, user_id, date: currDate }]);

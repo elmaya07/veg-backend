@@ -18,8 +18,8 @@ export async function OPTIONS() {
 
 
 export async function POST(request) {
-  const { email, password } = await request.json();
-
+  const { email, password, username, profesi } = await request.json();
+  console.log({ email, password, username, profesi })
   // Validate the input
   if (!email || !password) {
     return NextResponse.json(
@@ -29,9 +29,13 @@ export async function POST(request) {
   }
 
   // Sign in the user
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    username, profesi,
+    user_metadata: {
+      username, profesi,
+    }
   });
 
   // Handle any errors during sign-in
@@ -39,22 +43,16 @@ export async function POST(request) {
     return NextResponse.json({ error: error.message }, { status: 401 });
   }
 
-  const userData = await supabase
+  const insertdata = await supabase
     .from('user_data')
-    .select('*')
-    .eq('user_id', data.user.id); // Use the `id` to find the specific record
+    .insert([{
+      username, profesi, user_id: data.user.id,
+    }]);
 
-  // Handle errors
-  if (userData.error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-  console.log(userData)
-
-  const result = {
-    ...data.user,
-    ...userData.data?.[0]
+  if (insertdata.error) {
+    return NextResponse.json({ error: error }, { status: 500 });
   }
 
   // Successful login, return user data
-  return NextResponse.json(result, { status: 200 });
+  return NextResponse.json(data.user, { status: 200 });
 }
