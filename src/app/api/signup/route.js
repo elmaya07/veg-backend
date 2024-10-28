@@ -54,5 +54,5 @@ export async function POST(request) {
   }
 
   // Successful login, return user data
-  return NextResponse.json(data.user, { status: 200 });
+  return NextResponse.json({ username, profesi, ...data.user }, { status: 200 });
 }
