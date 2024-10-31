@@ -4,46 +4,36 @@ import { NextResponse } from 'next/server';
 import { promisify } from 'util';
 import { randomUUID } from 'crypto';// app/api/login/route.ts
 import { supabase, supabaseUrl } from '@/lib/supabaseClient';
+import fs from 'fs';
+import path from 'path';
+import moment from 'moment';
 
-// Setup multer
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-
-// Helper untuk menjalankan multer
-const runMiddleware = (req, res, fn) => {
-  return new Promise((resolve, reject) => {
-    fn(req, res, (result) => {
-      if (result instanceof Error) {
-        return reject(result);
-      }
-      return resolve(result);
-    });
-  });
-};
 
 export async function POST(req) {
-  const contentType = req.headers.get('content-type') || '';
-  console.log(contentType)
-  // Bungkus dalam try-catch untuk menangani error
   try {
-    // Jalankan middleware multer
-    await runMiddleware(req, {}, upload.single('image'));
+    // Ambil form data dari request
+    const formData = await req.formData();
+    const imageFile = formData.get('image'); // Mengambil file image
+    const title = formData.get('title'); // Mengambil field title
+    const body = formData.get('body'); // Mengambil field body
+    const author = formData.get('body'); // Mengambil field body
+    const userId = formData.get('user_id'); // Mengambil field body
 
-    const { title, body, author, user_id } = req.body; // menangkap data tambahan dari form
-    const imageFile = req.file;
-    console.log(imageFile)
-    if (!imageFile) {
+    if (!imageFile || !imageFile.arrayBuffer) {
       return NextResponse.json({ error: 'No image file uploaded' }, { status: 400 });
     }
 
-    // Generate unique file title
-    const fileName = `${randomUUID()}-${imageFile.originalname}`;
+    // Convert file to buffer
+    const buffer = Buffer.from(await imageFile.arrayBuffer());
 
-    // Upload file ke Supabase Storage
+    // Generate a unique file title
+    const fileName = `${randomUUID()}-${imageFile.name}`;
+
+    // Upload file to Supabase Storage
     const { data, error } = await supabase.storage
-      .from('images')
-      .upload(fileName, imageFile.buffer, {
-        contentType: imageFile.mimetype,
+      .from('images') // Ganti dengan nama bucket Anda
+      .upload(fileName, buffer, {
+        contentType: imageFile.type, // Tipe konten file
       });
 
     if (error) {
@@ -51,19 +41,97 @@ export async function POST(req) {
     }
 
     // Dapatkan URL publik dari gambar
-    const imageUrl = `${supabaseUrl}/storage/v1/object/public/images/${fileName}`;
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/images/${fileName}`;
 
-    // Simpan URL gambar bersama dengan data lainnya di Supabase Database
+    // Simpan metadata ke database (jika perlu)
     const { data: dbData, error: dbError } = await supabase
-      .from('penemu')
-      .insert({ title, body, author, user_id, image_url: imageUrl })
+      .from('penemu') // Ganti dengan nama tabel Anda
+      .insert({
+        title, body, author,
+        date: moment().format('YYYY-MM-DD'),
+        user_id: userId, image_url: publicUrl
+      })
       .select();
 
     if (dbError) {
       return NextResponse.json({ error: dbError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ message: 'Image uploaded successfully', data: dbData });
+    return NextResponse.json({
+      message: 'Image uploaded successfully',
+      url: publicUrl,
+      title,
+      body,
+      author,
+      user_id: userId,
+      data: dbData,
+    });
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+
+
+export async function PUT(req) {
+  try {
+    // Ambil form data dari request
+    const formData = await req.formData();
+    const imageFile = formData.get('image'); // Mengambil file image
+    const title = formData.get('title'); // Mengambil field title
+    const body = formData.get('body'); // Mengambil field body
+    const author = formData.get('body'); // Mengambil field body
+    const userId = formData.get('user_id'); // Mengambil field body
+    const id = formData.get('id'); // Mengambil field body
+
+    if (!imageFile || !imageFile.arrayBuffer) {
+      return NextResponse.json({ error: 'No image file uploaded' }, { status: 400 });
+    }
+
+    // Convert file to buffer
+    const buffer = Buffer.from(await imageFile.arrayBuffer());
+
+    // Generate a unique file title
+    const fileName = `${randomUUID()}-${imageFile.name}`;
+
+    // Upload file to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('images') // Ganti dengan nama bucket Anda
+      .upload(fileName, buffer, {
+        contentType: imageFile.type, // Tipe konten file
+      });
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Dapatkan URL publik dari gambar
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/images/${fileName}`;
+
+    // Simpan metadata ke database (jika perlu)
+    const { data: dbData, error: dbError } = await supabase
+      .from('penemu') // Ganti dengan nama tabel Anda
+      .update({
+        title, body, author,
+        date: moment().format('YYYY-MM-DD'),
+        user_id: userId, image_url: publicUrl
+      })
+      .eq('id', id)
+      .select();
+
+    if (dbError) {
+      return NextResponse.json({ error: dbError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      message: 'Image uploaded successfully',
+      url: publicUrl,
+      title,
+      body,
+      author,
+      user_id: userId,
+      data: dbData,
+    });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -71,6 +139,6 @@ export async function POST(req) {
 
 export const config = {
   api: {
-    bodyParser: false, // Disable bodyParser untuk menggunakan multer
+    bodyParser: false,
   },
 };
