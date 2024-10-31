@@ -16,7 +16,7 @@ export async function POST(req) {
     const imageFile = formData.get('image'); // Mengambil file image
     const title = formData.get('title'); // Mengambil field title
     const body = formData.get('body'); // Mengambil field body
-    const author = formData.get('body'); // Mengambil field body
+    const author = formData.get('author'); // Mengambil field body
     const userId = formData.get('user_id'); // Mengambil field body
 
     if (!imageFile || !imageFile.arrayBuffer) {
@@ -80,7 +80,7 @@ export async function PUT(req) {
     const imageFile = formData.get('image'); // Mengambil file image
     const title = formData.get('title'); // Mengambil field title
     const body = formData.get('body'); // Mengambil field body
-    const author = formData.get('body'); // Mengambil field body
+    const author = formData.get('author'); // Mengambil field body
     const userId = formData.get('user_id'); // Mengambil field body
     const id = formData.get('id'); // Mengambil field body
 
